@@ -1,0 +1,100 @@
+      
+     interface PostOffice {
+  Name: string;
+  BranchType: string;
+  DeliveryStatus: string;
+  Circle: string;
+  District: string;
+  Division: string;
+  Region: string;
+  State: string;
+  Country: string;
+  Pincode: string;
+  Description: string | null;
+}
+
+interface PostalApiResponse {
+  Message: string;
+  Status: string;
+  PostOffice: PostOffice[] | null;
+}
+
+
+
+          // this is for get location of user
+  const [pinCode, setPinCode] = useState<string>('');
+  const [postOfficeBranch, setPostOfficeBranch] = useState<string>('');
+  const [postalData, setPostalData] = useState<PostalApiResponse | null>(null);
+  // const [loading, setLoading] = useState<boolean>(false);
+  // const [error, setError] = useState<string>('');
+
+  // Function to handle search
+  const handleSearch = async () => {
+    setLoading(true); // Start loading indicator
+    setError(''); // Reset error message
+
+    try {
+      const queryParams = new URLSearchParams();
+      if (pinCode) queryParams.append('pinCode', pinCode);
+
+      const response = await fetch(`/api/postal-details?${queryParams.toString()}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch postal data');
+      }
+
+      const data: PostalApiResponse = await response.json();
+      setPostalData(data);
+      console.log('Postal Data:', data); // Check if the data is coming correctly
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred while fetching postal data');
+    } finally {
+      setLoading(false); // End loading indicator
+    }
+  };
+  
+
+          
+                <div>
+      <h1>Search Postal Details</h1>
+
+      {/* Input for PIN Code */}
+      <input
+        type="text"
+        value={pinCode}
+        onChange={(e) => setPinCode(e.target.value)}
+        placeholder="Enter PIN Code"
+      />
+      <button onClick={handleSearch}>Search</button>
+
+      {/* Loading State */}
+      {loading && <p>Loading...</p>}
+
+      {/* Error State */}
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {/* Displaying the results */}
+      {postalData && postalData.Status === 'Success' && postalData.PostOffice && postalData.PostOffice.length > 0 && (
+        <div>
+          <h3>Found {postalData.PostOffice.length} Post Office(s)</h3>
+          {postalData.PostOffice.map((post, index) => (
+            <div key={index}>
+              <h4>{post.Name}</h4>
+              <p><strong>Branch Type:</strong> {post.BranchType}</p>
+              <p><strong>Delivery Status:</strong> {post.DeliveryStatus}</p>
+              <p><strong>Circle:</strong> {post.Circle}</p>
+              <p><strong>District:</strong> {post.District}</p>
+              <p><strong>State:</strong> {post.State}</p>
+              <p><strong>Pincode:</strong> {post.Pincode}</p>
+              <p><strong>Region:</strong> {post.Region}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Handling no data or error message */}
+      {postalData && postalData.Status === 'Error' && (
+        <p>No results found for the given search.</p>
+      )}
+    </div>
